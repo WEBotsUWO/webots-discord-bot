@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type WheelEvent } from "react";
 import { stratify, tree, type HierarchyPointNode } from "d3-hierarchy";
 import {
   Briefcase,
@@ -43,7 +43,10 @@ const CARD_HEIGHT = 152;
 const NODE_GAP_X = 330;
 const NODE_GAP_Y = 206;
 const CANVAS_MARGIN = 110;
-const STORAGE_KEY = "webots-org-structure-state-v3";
+const MIN_ZOOM = 0.42;
+const MAX_ZOOM = 1.6;
+const ZOOM_BUTTON_STEP = 0.1;
+const STORAGE_KEY = "webots-org-structure-state-v4";
 
 const CHART_VIEWS: { id: ChartView; label: string; description: string }[] = [
   {
@@ -78,7 +81,7 @@ const initialPeopleByView: PeopleByView = {
     {
       id: "webots-president",
       name: "WeBots President",
-      role: "Vision, appointments, university relationships, priorities",
+      role: "Vision, priorities, university relationships, final decisions",
       teamId: "governance",
       level: "L6",
       hiring: false,
@@ -87,7 +90,7 @@ const initialPeopleByView: PeopleByView = {
     {
       id: "vp-operations-people",
       name: "VP Operations & People",
-      role: "Cadence, rooms, docs, onboarding, member health",
+      role: "Club cadence, onboarding, rooms, records, member health",
       teamId: "webots-ops",
       level: "L5",
       managerId: "webots-president",
@@ -95,9 +98,9 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: true,
     },
     {
-      id: "vp-business-partnerships",
-      name: "VP Business & Partnerships",
-      role: "Sponsors, grants, purchasing, partner management",
+      id: "vp-external-affairs",
+      name: "VP External Affairs",
+      role: "Sponsors, marketing, recruitment, public-facing relationships",
       teamId: "webots-business",
       level: "L5",
       managerId: "webots-president",
@@ -105,44 +108,14 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: true,
     },
     {
-      id: "vp-marketing-communications",
-      name: "VP Marketing & Communications",
-      role: "WeBots brand, recruitment media, social calendar",
-      teamId: "webots-marketing",
-      level: "L5",
-      managerId: "webots-president",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "project-josh-pm",
-      name: "Project JOSH Project Manager",
-      role: "Scope, milestones, risk, integration, reviews",
-      teamId: "project-josh",
-      level: "L5",
-      managerId: "webots-president",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "webots-chrc-team-pm",
-      name: "WeBots CHRC Team Project Manager",
-      role: "Competition robot roadmap, build, testing, compliance",
-      teamId: "webots-chrc-team",
-      level: "L5",
-      managerId: "webots-president",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "vp-programs-phase-2",
-      name: "VP Programs / Director of Engineering",
-      role: "Phase 2 layer when PM arbitration becomes frequent",
+      id: "director-engineering-programs",
+      name: "Director of Engineering & Programs",
+      role: "Project priorities, PM support, technical review cadence",
       teamId: "governance",
       level: "L5",
       managerId: "webots-president",
       hiring: true,
-      seniorLeadership: false,
+      seniorLeadership: true,
     },
     {
       id: "ops-admin-coordinators",
@@ -165,12 +138,62 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: false,
     },
     {
-      id: "sponsorship-grants",
-      name: "Sponsorship / Grants",
-      role: "Sponsor pipeline, proposals, deliverables",
+      id: "business-partnerships-lead",
+      name: "Business & Partnerships Lead",
+      role: "Sponsor pipeline, grants, budget tracking, purchases",
       teamId: "webots-business",
       level: "L4",
-      managerId: "vp-business-partnerships",
+      managerId: "vp-external-affairs",
+      hiring: true,
+      seniorLeadership: false,
+    },
+    {
+      id: "marketing-communications-lead",
+      name: "Marketing & Communications Lead",
+      role: "WeBots brand, social calendar, recruiting media",
+      teamId: "webots-marketing",
+      level: "L4",
+      managerId: "vp-external-affairs",
+      hiring: true,
+      seniorLeadership: false,
+    },
+    {
+      id: "project-josh-pm",
+      name: "Project JOSH Project Manager",
+      role: "Long-term humanoid roadmap, milestones, reviews",
+      teamId: "project-josh",
+      level: "L4",
+      managerId: "director-engineering-programs",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "webots-chrc-team-pm",
+      name: "WeBots CHRC Team Project Manager",
+      role: "Competition robot scope, build plan, readiness",
+      teamId: "webots-chrc-team",
+      level: "L4",
+      managerId: "director-engineering-programs",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "engineering-operations-lead",
+      name: "Shared Engineering Operations Lead",
+      role: "Build standards, lab process, shared tools, part flow",
+      teamId: "governance",
+      level: "L4",
+      managerId: "director-engineering-programs",
+      hiring: true,
+      seniorLeadership: false,
+    },
+    {
+      id: "sponsorship-grants",
+      name: "Sponsorship / Grants Lead",
+      role: "Sponsor proposals, outreach, deliverables",
+      teamId: "webots-business",
+      level: "L3",
+      managerId: "business-partnerships-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -179,8 +202,8 @@ const initialPeopleByView: PeopleByView = {
       name: "Finance / Purchasing Support",
       role: "Budget tracking, purchases, reimbursements",
       teamId: "webots-business",
-      level: "L4",
-      managerId: "vp-business-partnerships",
+      level: "L3",
+      managerId: "business-partnerships-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -189,8 +212,8 @@ const initialPeopleByView: PeopleByView = {
       name: "Social Media Lead",
       role: "WeBots channels, posting cadence, project updates",
       teamId: "webots-marketing",
-      level: "L4",
-      managerId: "vp-marketing-communications",
+      level: "L3",
+      managerId: "marketing-communications-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -199,8 +222,8 @@ const initialPeopleByView: PeopleByView = {
       name: "Content / Design Lead",
       role: "Graphics, photo/video, story assets",
       teamId: "webots-marketing",
-      level: "L4",
-      managerId: "vp-marketing-communications",
+      level: "L3",
+      managerId: "marketing-communications-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -209,8 +232,8 @@ const initialPeopleByView: PeopleByView = {
       name: "Website / Recruitment Media",
       role: "Website content, recruiting pages, media library",
       teamId: "webots-marketing",
-      level: "L4",
-      managerId: "vp-marketing-communications",
+      level: "L3",
+      managerId: "marketing-communications-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -219,7 +242,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Mechanical Lead",
       role: "Structure, CAD, actuator integration, manufacturing",
       teamId: "project-josh",
-      level: "L4",
+      level: "L3",
       managerId: "project-josh-pm",
       hiring: true,
       seniorLeadership: false,
@@ -229,7 +252,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Electrical Lead",
       role: "Power, batteries, wiring, sensors, safety circuits",
       teamId: "project-josh",
-      level: "L4",
+      level: "L3",
       managerId: "project-josh-pm",
       hiring: true,
       seniorLeadership: false,
@@ -239,7 +262,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Software & Controls Lead",
       role: "Controls, simulation, ROS/software architecture",
       teamId: "project-josh",
-      level: "L4",
+      level: "L3",
       managerId: "project-josh-pm",
       hiring: true,
       seniorLeadership: false,
@@ -249,47 +272,47 @@ const initialPeopleByView: PeopleByView = {
       name: "Systems Integration & Test Lead",
       role: "Interfaces, requirements, test plans, verification",
       teamId: "project-josh",
-      level: "L4",
+      level: "L3",
       managerId: "project-josh-pm",
       hiring: true,
       seniorLeadership: false,
     },
     {
       id: "comp-mechanical",
-      name: "Mechanical Lead",
-      role: "Competition robot mechanisms, packaging, repairability",
+      name: "Competition Mechanical Lead",
+      role: "Robot mechanisms, packaging, repairability",
       teamId: "webots-chrc-team",
-      level: "L4",
+      level: "L3",
       managerId: "webots-chrc-team-pm",
       hiring: true,
       seniorLeadership: false,
     },
     {
       id: "comp-electrical",
-      name: "Electrical Lead",
+      name: "Competition Electrical Lead",
       role: "Competition electrical system and field reliability",
       teamId: "webots-chrc-team",
-      level: "L4",
+      level: "L3",
       managerId: "webots-chrc-team-pm",
       hiring: true,
       seniorLeadership: false,
     },
     {
       id: "comp-software-controls",
-      name: "Software & Controls Lead",
+      name: "Competition Software & Controls Lead",
       role: "Competition software, controls, perception, tooling",
       teamId: "webots-chrc-team",
-      level: "L4",
+      level: "L3",
       managerId: "webots-chrc-team-pm",
       hiring: true,
       seniorLeadership: false,
     },
     {
       id: "comp-systems-test",
-      name: "Systems Integration & Test Lead",
+      name: "Competition Integration & Test Lead",
       role: "Acceptance tests, spares, readiness checklists",
       teamId: "webots-chrc-team",
-      level: "L4",
+      level: "L3",
       managerId: "webots-chrc-team-pm",
       hiring: true,
       seniorLeadership: false,
@@ -299,8 +322,28 @@ const initialPeopleByView: PeopleByView = {
       name: "Competition Strategy & Compliance Lead",
       role: "Rules matrix, scoring strategy, published clarifications",
       teamId: "webots-chrc-team",
-      level: "L4",
+      level: "L3",
       managerId: "webots-chrc-team-pm",
+      hiring: true,
+      seniorLeadership: false,
+    },
+    {
+      id: "lab-safety-process",
+      name: "Safety & Lab Process Coordinator",
+      role: "Shop safety, build procedures, member access",
+      teamId: "governance",
+      level: "L3",
+      managerId: "engineering-operations-lead",
+      hiring: true,
+      seniorLeadership: false,
+    },
+    {
+      id: "parts-fabrication",
+      name: "Parts & Fabrication Coordinator",
+      role: "Part orders, fabrication queue, inventory",
+      teamId: "governance",
+      level: "L3",
+      managerId: "engineering-operations-lead",
       hiring: true,
       seniorLeadership: false,
     },
@@ -326,9 +369,9 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: true,
     },
     {
-      id: "chrc-ops-pm",
-      name: "Competition Operations PM",
-      role: "Venue, event flow, volunteers, run-of-show",
+      id: "chrc-delivery-director",
+      name: "Deputy Director, Competition Delivery",
+      role: "Event operations, technical rules, field execution",
       teamId: "chrc-operations",
       level: "L5",
       managerId: "chrc-executive-director",
@@ -336,40 +379,10 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: true,
     },
     {
-      id: "chrc-rules-pm",
-      name: "Technical & Rules PM",
-      role: "Rulebook, safety, inspection, scoring process",
-      teamId: "chrc-rules",
-      level: "L5",
-      managerId: "chrc-executive-director",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "chrc-relations-pm",
-      name: "Team Relations PM",
-      role: "University outreach, registration, competitor support",
-      teamId: "chrc-relations",
-      level: "L5",
-      managerId: "chrc-executive-director",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "chrc-finance-pm",
-      name: "Partnerships & Finance PM",
-      role: "Sponsors, grants, budget, partner deliverables",
+      id: "chrc-outreach-business-director",
+      name: "Deputy Director, Outreach & Business",
+      role: "Teams, partnerships, finance, marketing, communications",
       teamId: "chrc-finance",
-      level: "L5",
-      managerId: "chrc-executive-director",
-      hiring: true,
-      seniorLeadership: true,
-    },
-    {
-      id: "chrc-media-pm",
-      name: "Marketing & Media PM",
-      role: "Brand, social channels, site, announcements",
-      teamId: "chrc-media",
       level: "L5",
       managerId: "chrc-executive-director",
       hiring: true,
@@ -386,11 +399,61 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: false,
     },
     {
+      id: "chrc-ops-pm",
+      name: "Competition Operations PM",
+      role: "Venue, event flow, volunteers, run-of-show",
+      teamId: "chrc-operations",
+      level: "L4",
+      managerId: "chrc-delivery-director",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "chrc-rules-pm",
+      name: "Technical & Rules PM",
+      role: "Rulebook, safety, inspection, scoring process",
+      teamId: "chrc-rules",
+      level: "L4",
+      managerId: "chrc-delivery-director",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "chrc-relations-pm",
+      name: "Team Relations PM",
+      role: "University outreach, registration, competitor support",
+      teamId: "chrc-relations",
+      level: "L4",
+      managerId: "chrc-outreach-business-director",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "chrc-finance-pm",
+      name: "Partnerships & Finance PM",
+      role: "Sponsors, grants, budget, partner deliverables",
+      teamId: "chrc-finance",
+      level: "L4",
+      managerId: "chrc-outreach-business-director",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
+      id: "chrc-media-pm",
+      name: "Marketing & Media PM",
+      role: "Brand, social channels, site, announcements",
+      teamId: "chrc-media",
+      level: "L4",
+      managerId: "chrc-outreach-business-director",
+      hiring: true,
+      seniorLeadership: true,
+    },
+    {
       id: "chrc-venue-logistics",
       name: "Venue & Logistics Lead",
       role: "Venue, equipment, setup/teardown, event flow",
       teamId: "chrc-operations",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-ops-pm",
       hiring: true,
       seniorLeadership: false,
@@ -400,7 +463,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Volunteers & Staffing Lead",
       role: "Volunteer recruiting, assignments, training",
       teamId: "chrc-operations",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-ops-pm",
       hiring: true,
       seniorLeadership: false,
@@ -410,7 +473,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Event Schedule / Field Operations Lead",
       role: "Run schedule, field flow, on-site execution",
       teamId: "chrc-operations",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-ops-pm",
       hiring: true,
       seniorLeadership: false,
@@ -420,7 +483,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Rules Lead",
       role: "Rulebook process and official clarifications",
       teamId: "chrc-rules",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-rules-pm",
       hiring: true,
       seniorLeadership: false,
@@ -430,7 +493,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Safety & Technical Inspection Lead",
       role: "Safety standards, inspection process, readiness",
       teamId: "chrc-rules",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-rules-pm",
       hiring: true,
       seniorLeadership: false,
@@ -440,7 +503,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Judging & Scoring Lead",
       role: "Scoring system, judge preparation, judging flow",
       teamId: "chrc-rules",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-rules-pm",
       hiring: true,
       seniorLeadership: false,
@@ -450,7 +513,7 @@ const initialPeopleByView: PeopleByView = {
       name: "University Outreach Lead",
       role: "Recruit universities through neutral channels",
       teamId: "chrc-relations",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-relations-pm",
       hiring: true,
       seniorLeadership: false,
@@ -460,7 +523,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Registration & Team Support Lead",
       role: "Registration, FAQs, deadlines, team communication",
       teamId: "chrc-relations",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-relations-pm",
       hiring: true,
       seniorLeadership: false,
@@ -470,7 +533,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Sponsorship Lead",
       role: "Sponsor pipeline and deliverables",
       teamId: "chrc-finance",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-finance-pm",
       hiring: true,
       seniorLeadership: false,
@@ -480,7 +543,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Finance / Grants Lead",
       role: "Budget, payments, grants, records",
       teamId: "chrc-finance",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-finance-pm",
       hiring: true,
       seniorLeadership: false,
@@ -490,7 +553,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Social Media Lead",
       role: "Neutral channels and competition updates",
       teamId: "chrc-media",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-media-pm",
       hiring: true,
       seniorLeadership: false,
@@ -500,7 +563,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Brand / Design Lead",
       role: "Identity, graphics, event collateral",
       teamId: "chrc-media",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-media-pm",
       hiring: true,
       seniorLeadership: false,
@@ -510,7 +573,7 @@ const initialPeopleByView: PeopleByView = {
       name: "Web / Content Lead",
       role: "Competition site, docs, announcements, media",
       teamId: "chrc-media",
-      level: "L4",
+      level: "L3",
       managerId: "chrc-media-pm",
       hiring: true,
       seniorLeadership: false,
@@ -527,6 +590,10 @@ function levelValue(level: Level) {
 function levelBelow(level: Level): Level {
   const next = Math.max(1, levelValue(level) - 1);
   return `L${next}` as Level;
+}
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 }
 
 function hexToRgb(hex: string) {
@@ -747,6 +814,45 @@ export default function App() {
     hasCenteredChart.current = false;
   }
 
+  function zoomAtClientPoint(getNextZoom: (currentZoom: number) => number, clientX: number, clientY: number) {
+    const scroller = chartScrollRef.current;
+
+    setZoom((currentZoom) => {
+      const nextZoom = clampZoom(getNextZoom(currentZoom));
+      if (!scroller || nextZoom === currentZoom) return nextZoom;
+
+      const rect = scroller.getBoundingClientRect();
+      const offsetX = clientX - rect.left;
+      const offsetY = clientY - rect.top;
+      const worldX = (scroller.scrollLeft + offsetX) / currentZoom;
+      const worldY = (scroller.scrollTop + offsetY) / currentZoom;
+
+      window.requestAnimationFrame(() => {
+        scroller.scrollLeft = Math.max(0, worldX * nextZoom - offsetX);
+        scroller.scrollTop = Math.max(0, worldY * nextZoom - offsetY);
+      });
+
+      return nextZoom;
+    });
+  }
+
+  function zoomFromCenter(delta: number) {
+    const scroller = chartScrollRef.current;
+    if (!scroller) {
+      setZoom((currentZoom) => clampZoom(currentZoom + delta));
+      return;
+    }
+
+    const rect = scroller.getBoundingClientRect();
+    zoomAtClientPoint((currentZoom) => currentZoom + delta, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+
+  function handleWheelZoom(event: WheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const factor = Math.exp(-event.deltaY * 0.001);
+    zoomAtClientPoint((currentZoom) => currentZoom * factor, event.clientX, event.clientY);
+  }
+
   function updateActivePeople(updater: (current: Person[]) => Person[]) {
     setPeopleByView((current) => ({
       ...current,
@@ -965,17 +1071,17 @@ export default function App() {
             )}
 
             <div className="zoom-control" aria-label="Zoom">
-              <button type="button" onClick={() => setZoom((value) => Math.max(0.42, value - 0.08))}>
+              <button type="button" onClick={() => zoomFromCenter(-ZOOM_BUTTON_STEP)}>
                 -
               </button>
               <span>{Math.round(zoom * 100)}%</span>
-              <button type="button" onClick={() => setZoom((value) => Math.min(1.16, value + 0.08))}>
+              <button type="button" onClick={() => zoomFromCenter(ZOOM_BUTTON_STEP)}>
                 +
               </button>
             </div>
           </div>
 
-          <div className="chart-scroll" ref={chartScrollRef}>
+          <div className="chart-scroll" ref={chartScrollRef} onWheel={handleWheelZoom}>
             <svg
               className="org-svg"
               width={canvasWidth * zoom}
