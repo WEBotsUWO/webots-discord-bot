@@ -407,7 +407,7 @@ h1 {
 .chart-scroll {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   touch-action: none;
   cursor: grab;

@@ -42,8 +42,13 @@ type PanState = {
   pointerId: number;
   startX: number;
   startY: number;
-  scrollLeft: number;
-  scrollTop: number;
+  startPanX: number;
+  startPanY: number;
+};
+
+type Point = {
+  x: number;
+  y: number;
 };
 
 const LEVELS: Level[] = ["L6", "L5", "L4", "L3", "L2", "L1"];
@@ -51,8 +56,8 @@ const CARD_WIDTH = 286;
 const CARD_HEIGHT = 152;
 const NODE_GAP_X = 330;
 const NODE_GAP_Y = 206;
-const CANVAS_MARGIN_X = 1300;
-const CANVAS_MARGIN_Y = 170;
+const VIEWPORT_FALLBACK_WIDTH = 1100;
+const VIEWPORT_FALLBACK_HEIGHT = 660;
 const MIN_ZOOM = 0.42;
 const MAX_ZOOM = 3;
 const ZOOM_BUTTON_STEP = 0.1;
@@ -586,6 +591,49 @@ function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 }
 
+function getSafeViewport(viewport: { width: number; height: number }) {
+  return viewport.width > 1 && viewport.height > 1 ? viewport : { width: VIEWPORT_FALLBACK_WIDTH, height: VIEWPORT_FALLBACK_HEIGHT };
+}
+
+function getPanBounds(layoutWidth: number, layoutHeight: number, viewport: { width: number; height: number }, zoom: number) {
+  const safeViewport = getSafeViewport(viewport);
+  const horizontalRoom = Math.min(1200, Math.max(620, safeViewport.width * 0.78));
+  const verticalRoom = Math.min(760, Math.max(360, safeViewport.height * 0.62));
+  const scaledWidth = layoutWidth * zoom;
+  const scaledHeight = layoutHeight * zoom;
+
+  return {
+    minX: Math.min(horizontalRoom, safeViewport.width - scaledWidth - horizontalRoom),
+    maxX: horizontalRoom,
+    minY: Math.min(verticalRoom, safeViewport.height - scaledHeight - verticalRoom),
+    maxY: verticalRoom,
+  };
+}
+
+function clampPan(pan: Point, layoutWidth: number, layoutHeight: number, viewport: { width: number; height: number }, zoom: number) {
+  const bounds = getPanBounds(layoutWidth, layoutHeight, viewport, zoom);
+
+  return {
+    x: Math.min(bounds.maxX, Math.max(bounds.minX, pan.x)),
+    y: Math.min(bounds.maxY, Math.max(bounds.minY, pan.y)),
+  };
+}
+
+function getCenteredPan(layoutWidth: number, layoutHeight: number, viewport: { width: number; height: number }, zoom: number) {
+  const safeViewport = getSafeViewport(viewport);
+
+  return clampPan(
+    {
+      x: (safeViewport.width - layoutWidth * zoom) / 2,
+      y: (safeViewport.height - layoutHeight * zoom) / 2,
+    },
+    layoutWidth,
+    layoutHeight,
+    safeViewport,
+    zoom,
+  );
+}
+
 function hexToRgb(hex: string) {
   const clean = hex.replace("#", "");
   const bigint = parseInt(clean.length === 3 ? clean.split("").map((x) => x + x).join("") : clean, 16);
@@ -764,6 +812,8 @@ export default function App() {
   const [activeView, setActiveView] = useState<ChartView>("webots");
   const [searchTerm, setSearchTerm] = useState("");
   const [zoom, setZoom] = useState(defaultZoom);
+  const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const chartScrollRef = useRef<HTMLDivElement>(null);
   const hasCenteredChart = useRef(false);
@@ -773,9 +823,13 @@ export default function App() {
     pointerId: -1,
     startX: 0,
     startY: 0,
-    scrollLeft: 0,
-    scrollTop: 0,
+    startPanX: 0,
+    startPanY: 0,
   });
+  const zoomRef = useRef(zoom);
+  const panRef = useRef(pan);
+  const viewportRef = useRef(viewport);
+  const layoutSizeRef = useRef({ width: VIEWPORT_FALLBACK_WIDTH, height: VIEWPORT_FALLBACK_HEIGHT });
   const suppressCardClickRef = useRef(false);
 
   const people = peopleByView[activeView];
@@ -794,11 +848,30 @@ export default function App() {
   const minX = Math.min(...nodes.map((node) => node.x));
   const maxX = Math.max(...nodes.map((node) => node.x));
   const maxY = Math.max(...nodes.map((node) => node.y));
-  const canvasWidth = Math.max(980, maxX - minX + CANVAS_MARGIN_X * 2 + CARD_WIDTH);
-  const canvasHeight = Math.max(660, maxY + CANVAS_MARGIN_Y * 2 + CARD_HEIGHT);
+  const chartOriginX = -minX + CARD_WIDTH / 2;
+  const chartOriginY = CARD_HEIGHT / 2;
+  const layoutWidth = Math.max(CARD_WIDTH, maxX - minX + CARD_WIDTH);
+  const layoutHeight = Math.max(CARD_HEIGHT, maxY + CARD_HEIGHT);
   const seniorCount = people.filter((person) => person.seniorLeadership).length;
   const hiringCount = people.filter((person) => person.hiring).length;
   const activeTeamCount = new Set(people.map((person) => person.teamId)).size;
+  const svgViewport = getSafeViewport(viewport);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+
+  useEffect(() => {
+    layoutSizeRef.current = { width: layoutWidth, height: layoutHeight };
+  }, [layoutHeight, layoutWidth]);
 
   useEffect(() => {
     if (isPublicView) return;
@@ -806,12 +879,34 @@ export default function App() {
   }, [isPublicView, teams, peopleByView, selectedByView]);
 
   useEffect(() => {
-    if (hasCenteredChart.current || !chartScrollRef.current) return;
-    const rootCenterX = (CANVAS_MARGIN_X - minX + CARD_WIDTH / 2 + chart.x) * zoom;
-    chartScrollRef.current.scrollLeft = Math.max(0, rootCenterX - chartScrollRef.current.clientWidth / 2);
-    chartScrollRef.current.scrollTop = 0;
+    const scroller = chartScrollRef.current;
+    if (!scroller) return;
+
+    const updateViewport = () => {
+      const rect = scroller.getBoundingClientRect();
+      setViewport({
+        width: Math.max(1, rect.width),
+        height: Math.max(1, rect.height),
+      });
+    };
+
+    updateViewport();
+    const observer = new ResizeObserver(updateViewport);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (viewport.width <= 1 || viewport.height <= 1) return;
+    if (hasCenteredChart.current) return;
+    setPan(getCenteredPan(layoutWidth, layoutHeight, viewport, zoom));
     hasCenteredChart.current = true;
-  }, [activeView, chart.x, minX, searchTerm, zoom]);
+  }, [activeView, layoutHeight, layoutWidth, searchTerm, viewport, zoom]);
+
+  useEffect(() => {
+    if (!hasCenteredChart.current) return;
+    setPan((current) => clampPan(current, layoutWidth, layoutHeight, viewport, zoom));
+  }, [layoutHeight, layoutWidth, viewport, zoom]);
 
   useEffect(() => {
     const scroller = chartScrollRef.current;
@@ -835,30 +930,44 @@ export default function App() {
 
   function zoomAtClientPoint(getNextZoom: (currentZoom: number) => number, clientX: number, clientY: number) {
     const scroller = chartScrollRef.current;
+    if (!scroller) {
+      setZoom((currentZoom) => clampZoom(getNextZoom(currentZoom)));
+      return;
+    }
 
-    setZoom((currentZoom) => {
-      const nextZoom = clampZoom(getNextZoom(currentZoom));
-      if (!scroller || nextZoom === currentZoom) return nextZoom;
+    const currentZoom = zoomRef.current;
+    const nextZoom = clampZoom(getNextZoom(currentZoom));
+    if (nextZoom === currentZoom) return;
 
-      const rect = scroller.getBoundingClientRect();
-      const offsetX = clientX - rect.left;
-      const offsetY = clientY - rect.top;
-      const worldX = (scroller.scrollLeft + offsetX) / currentZoom;
-      const worldY = (scroller.scrollTop + offsetY) / currentZoom;
+    const rect = scroller.getBoundingClientRect();
+    const offsetX = clientX - rect.left;
+    const offsetY = clientY - rect.top;
+    const currentPan = panRef.current;
+    const currentViewport = viewportRef.current;
+    const currentLayout = layoutSizeRef.current;
+    const worldX = (offsetX - currentPan.x) / currentZoom;
+    const worldY = (offsetY - currentPan.y) / currentZoom;
+    const nextPan = clampPan(
+      {
+        x: offsetX - worldX * nextZoom,
+        y: offsetY - worldY * nextZoom,
+      },
+      currentLayout.width,
+      currentLayout.height,
+      currentViewport,
+      nextZoom,
+    );
 
-      window.requestAnimationFrame(() => {
-        scroller.scrollLeft = Math.max(0, worldX * nextZoom - offsetX);
-        scroller.scrollTop = Math.max(0, worldY * nextZoom - offsetY);
-      });
-
-      return nextZoom;
-    });
+    setZoom(nextZoom);
+    setPan(nextPan);
   }
 
   function zoomFromCenter(delta: number) {
     const scroller = chartScrollRef.current;
     if (!scroller) {
-      setZoom((currentZoom) => clampZoom(currentZoom + delta));
+      const nextZoom = clampZoom(zoomRef.current + delta);
+      setZoom(nextZoom);
+      setPan((current) => clampPan(current, layoutWidth, layoutHeight, viewport, nextZoom));
       return;
     }
 
@@ -878,8 +987,8 @@ export default function App() {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      scrollLeft: scroller.scrollLeft,
-      scrollTop: scroller.scrollTop,
+      startPanX: panRef.current.x,
+      startPanY: panRef.current.y,
     };
     suppressCardClickRef.current = false;
     setIsPanning(true);
@@ -901,8 +1010,18 @@ export default function App() {
       suppressCardClickRef.current = true;
     }
 
-    scroller.scrollLeft = panState.scrollLeft - deltaX;
-    scroller.scrollTop = panState.scrollTop - deltaY;
+    setPan(
+      clampPan(
+        {
+          x: panState.startPanX + deltaX,
+          y: panState.startPanY + deltaY,
+        },
+        layoutSizeRef.current.width,
+        layoutSizeRef.current.height,
+        viewportRef.current,
+        zoomRef.current,
+      ),
+    );
     event.preventDefault();
   }
 
@@ -1163,13 +1282,13 @@ export default function App() {
           >
             <svg
               className="org-svg"
-              width={canvasWidth * zoom}
-              height={canvasHeight * zoom}
-              viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${svgViewport.width} ${svgViewport.height}`}
               role="img"
               aria-label="Org chart"
             >
-              <g transform={`translate(${CANVAS_MARGIN_X - minX + CARD_WIDTH / 2}, ${CANVAS_MARGIN_Y})`}>
+              <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom}) translate(${chartOriginX}, ${chartOriginY})`}>
                 {links.map((link) => (
                   <OrgLink key={`${link.source.id}-${link.target.id}`} link={link} />
                 ))}
