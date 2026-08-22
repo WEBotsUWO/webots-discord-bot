@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type WheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { stratify, tree, type HierarchyPointNode } from "d3-hierarchy";
 import {
   Briefcase,
@@ -36,6 +36,15 @@ type Person = {
 type PeopleByView = Record<ChartView, Person[]>;
 type CollapsedByView = Record<ChartView, Set<string>>;
 type SelectedByView = Record<ChartView, string>;
+type PanState = {
+  active: boolean;
+  moved: boolean;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  scrollLeft: number;
+  scrollTop: number;
+};
 
 const LEVELS: Level[] = ["L6", "L5", "L4", "L3", "L2", "L1"];
 const CARD_WIDTH = 286;
@@ -681,6 +690,10 @@ function getSearchMatchIds(people: Person[], searchTerm: string) {
   return new Set(people.filter((person) => matchesSearch(person, query)).map((person) => person.id));
 }
 
+function isInteractivePointerTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("button, input, select, textarea, a"));
+}
+
 function getVisiblePeople(people: Person[], collapsedIds: Set<string>, searchTerm: string) {
   const query = searchTerm.trim();
   if (query) {
@@ -770,8 +783,19 @@ export default function App() {
   const [activeView, setActiveView] = useState<ChartView>("webots");
   const [searchTerm, setSearchTerm] = useState("");
   const [zoom, setZoom] = useState(defaultZoom);
+  const [isPanning, setIsPanning] = useState(false);
   const chartScrollRef = useRef<HTMLDivElement>(null);
   const hasCenteredChart = useRef(false);
+  const panStateRef = useRef<PanState>({
+    active: false,
+    moved: false,
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    scrollLeft: 0,
+    scrollTop: 0,
+  });
+  const suppressCardClickRef = useRef(false);
 
   const people = peopleByView[activeView];
   const selectedId = selectedByView[activeView];
@@ -807,6 +831,20 @@ export default function App() {
     chartScrollRef.current.scrollTop = 0;
     hasCenteredChart.current = true;
   }, [activeView, chart.x, minX, searchTerm, zoom]);
+
+  useEffect(() => {
+    const scroller = chartScrollRef.current;
+    if (!scroller) return;
+
+    const handleNativeWheel = (event: globalThis.WheelEvent) => {
+      event.preventDefault();
+      const factor = Math.exp(-event.deltaY * 0.001);
+      zoomAtClientPoint((currentZoom) => currentZoom * factor, event.clientX, event.clientY);
+    };
+
+    scroller.addEventListener("wheel", handleNativeWheel, { passive: false });
+    return () => scroller.removeEventListener("wheel", handleNativeWheel);
+  }, []);
 
   function switchView(viewId: ChartView) {
     setActiveView(viewId);
@@ -847,10 +885,63 @@ export default function App() {
     zoomAtClientPoint((currentZoom) => currentZoom + delta, rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
 
-  function handleWheelZoom(event: WheelEvent<HTMLDivElement>) {
+  function handlePanStart(event: PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0 || isInteractivePointerTarget(event.target)) return;
+
+    const scroller = chartScrollRef.current;
+    if (!scroller) return;
+
+    panStateRef.current = {
+      active: true,
+      moved: false,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: scroller.scrollLeft,
+      scrollTop: scroller.scrollTop,
+    };
+    suppressCardClickRef.current = false;
+    setIsPanning(true);
+    scroller.setPointerCapture(event.pointerId);
     event.preventDefault();
-    const factor = Math.exp(-event.deltaY * 0.001);
-    zoomAtClientPoint((currentZoom) => currentZoom * factor, event.clientX, event.clientY);
+  }
+
+  function handlePanMove(event: PointerEvent<HTMLDivElement>) {
+    const panState = panStateRef.current;
+    if (!panState.active || panState.pointerId !== event.pointerId) return;
+
+    const scroller = chartScrollRef.current;
+    if (!scroller) return;
+
+    const deltaX = event.clientX - panState.startX;
+    const deltaY = event.clientY - panState.startY;
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      panState.moved = true;
+      suppressCardClickRef.current = true;
+    }
+
+    scroller.scrollLeft = panState.scrollLeft - deltaX;
+    scroller.scrollTop = panState.scrollTop - deltaY;
+    event.preventDefault();
+  }
+
+  function stopPanning(event: PointerEvent<HTMLDivElement>) {
+    const panState = panStateRef.current;
+    if (!panState.active || panState.pointerId !== event.pointerId) return;
+
+    const scroller = chartScrollRef.current;
+    if (scroller?.hasPointerCapture(event.pointerId)) {
+      scroller.releasePointerCapture(event.pointerId);
+    }
+
+    panStateRef.current = { ...panState, active: false };
+    setIsPanning(false);
+
+    if (panState.moved) {
+      window.setTimeout(() => {
+        suppressCardClickRef.current = false;
+      }, 0);
+    }
   }
 
   function updateActivePeople(updater: (current: Person[]) => Person[]) {
@@ -1081,7 +1172,14 @@ export default function App() {
             </div>
           </div>
 
-          <div className="chart-scroll" ref={chartScrollRef} onWheel={handleWheelZoom}>
+          <div
+            className={`chart-scroll ${isPanning ? "is-panning" : ""}`}
+            ref={chartScrollRef}
+            onPointerDown={handlePanStart}
+            onPointerMove={handlePanMove}
+            onPointerUp={stopPanning}
+            onPointerCancel={stopPanning}
+          >
             <svg
               className="org-svg"
               width={canvasWidth * zoom}
@@ -1110,6 +1208,7 @@ export default function App() {
                       searchMatch={matchingIds.has(node.data.id)}
                       isPublicView={isPublicView}
                       onSelect={() => {
+                        if (suppressCardClickRef.current) return;
                         if (!isPublicView) setSelectedId(node.data.id);
                       }}
                       onToggle={() => toggleCollapsed(node.data.id)}

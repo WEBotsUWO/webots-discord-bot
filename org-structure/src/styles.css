@@ -409,11 +409,21 @@ h1 {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  touch-action: none;
+  cursor: grab;
   background:
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     #101114;
   background-size: 42px 42px;
+}
+
+.chart-scroll.is-panning {
+  cursor: grabbing;
+}
+
+.chart-scroll.is-panning .person-card {
+  cursor: grabbing;
 }
 
 .org-svg {
@@ -498,7 +508,11 @@ h1 {
 }
 
 .app-shell.is-public-view .person-card {
-  cursor: default;
+  cursor: grab;
+}
+
+.app-shell.is-public-view .chart-scroll.is-panning .person-card {
+  cursor: grabbing;
 }
 
 .app-shell.is-public-view .person-card:hover {
@@ -861,13 +875,28 @@ select:focus {
     overflow: visible;
   }
 
+  .app-shell.is-public-view {
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
     flex: initial;
   }
 
+  .app-shell.is-public-view .workspace {
+    flex: 1;
+    min-height: 0;
+  }
+
   .chart-stage {
     min-height: 640px;
+  }
+
+  .app-shell.is-public-view .chart-stage {
+    min-height: 0;
   }
 
   .inspector {
@@ -876,6 +905,10 @@ select:focus {
 
   .chart-scroll {
     min-height: 580px;
+  }
+
+  .app-shell.is-public-view .chart-scroll {
+    min-height: 0;
   }
 
   .app-shell.is-embed {
@@ -948,6 +981,10 @@ select:focus {
 
   .chart-scroll {
     height: 560px;
+  }
+
+  .app-shell.is-public-view .chart-scroll {
+    height: auto;
   }
 
   .app-shell.is-embed .chart-toolbar {
