@@ -53,9 +53,9 @@ const NODE_GAP_X = 330;
 const NODE_GAP_Y = 206;
 const CANVAS_MARGIN = 110;
 const MIN_ZOOM = 0.42;
-const MAX_ZOOM = 1.6;
+const MAX_ZOOM = 3;
 const ZOOM_BUTTON_STEP = 0.1;
-const STORAGE_KEY = "webots-org-structure-state-v4";
+const STORAGE_KEY = "webots-org-structure-state-v5";
 
 const CHART_VIEWS: { id: ChartView; label: string; description: string }[] = [
   {
@@ -287,19 +287,9 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: false,
     },
     {
-      id: "comp-mechanical",
-      name: "Competition Mechanical Lead",
-      role: "Robot mechanisms, packaging, repairability",
-      teamId: "webots-chrc-team",
-      level: "L3",
-      managerId: "webots-chrc-team-pm",
-      hiring: true,
-      seniorLeadership: false,
-    },
-    {
-      id: "comp-electrical",
-      name: "Competition Electrical Lead",
-      role: "Competition electrical system and field reliability",
+      id: "comp-hardware",
+      name: "Competition Hardware Lead",
+      role: "Mechanical, electrical, packaging, field reliability",
       teamId: "webots-chrc-team",
       level: "L3",
       managerId: "webots-chrc-team-pm",
@@ -317,19 +307,9 @@ const initialPeopleByView: PeopleByView = {
       seniorLeadership: false,
     },
     {
-      id: "comp-systems-test",
-      name: "Competition Integration & Test Lead",
-      role: "Acceptance tests, spares, readiness checklists",
-      teamId: "webots-chrc-team",
-      level: "L3",
-      managerId: "webots-chrc-team-pm",
-      hiring: true,
-      seniorLeadership: false,
-    },
-    {
-      id: "comp-strategy-compliance",
-      name: "Competition Strategy & Compliance Lead",
-      role: "Rules matrix, scoring strategy, published clarifications",
+      id: "comp-strategy-integration",
+      name: "Strategy, Integration & Test Lead",
+      role: "Rules, scoring strategy, integration, readiness tests",
       teamId: "webots-chrc-team",
       level: "L3",
       managerId: "webots-chrc-team-pm",
@@ -691,7 +671,7 @@ function getSearchMatchIds(people: Person[], searchTerm: string) {
 }
 
 function isInteractivePointerTarget(target: EventTarget | null) {
-  return target instanceof HTMLElement && Boolean(target.closest("button, input, select, textarea, a"));
+  return target instanceof Element && Boolean(target.closest("button, input, select, textarea, a"));
 }
 
 function getVisiblePeople(people: Person[], collapsedIds: Set<string>, searchTerm: string) {
