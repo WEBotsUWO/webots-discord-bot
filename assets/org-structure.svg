@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">WeBots Organization Structure</title>
+  <desc id="desc">Organization chart for WeBots with executive, technical, competition, business, and member teams.</desc>
+  <defs>
+    <style>
+      .bg { fill: #111827; }
+      .panel { fill: #f8fafc; stroke: #d1d5db; stroke-width: 3; }
+      .root { fill: #0f766e; stroke: #14b8a6; stroke-width: 3; }
+      .exec { fill: #1d4ed8; stroke: #60a5fa; stroke-width: 3; }
+      .tech { fill: #7c2d12; stroke: #fb923c; stroke-width: 3; }
+      .ops { fill: #6d28d9; stroke: #a78bfa; stroke-width: 3; }
+      .member { fill: #334155; stroke: #94a3b8; stroke-width: 3; }
+      .line { fill: none; stroke: #94a3b8; stroke-width: 5; stroke-linecap: round; }
+      .title { fill: #f8fafc; font-family: Arial, sans-serif; font-size: 54px; font-weight: 700; }
+      .subtitle { fill: #cbd5e1; font-family: Arial, sans-serif; font-size: 26px; }
+      .box-title { fill: #ffffff; font-family: Arial, sans-serif; font-size: 30px; font-weight: 700; text-anchor: middle; }
+      .box-subtitle { fill: #e2e8f0; font-family: Arial, sans-serif; font-size: 20px; text-anchor: middle; }
+      .small { fill: #e2e8f0; font-family: Arial, sans-serif; font-size: 18px; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1050"/>
+  <text class="title" x="80" y="90">WeBots Organization Structure</text>
+  <text class="subtitle" x="80" y="132">Executive leadership, team leads, and member teams</text>
+
+  <path class="line" d="M800 210 V285"/>
+  <path class="line" d="M520 285 H1080"/>
+  <path class="line" d="M520 285 V355"/>
+  <path class="line" d="M1080 285 V355"/>
+  <path class="line" d="M800 455 V535"/>
+  <path class="line" d="M270 535 H1330"/>
+  <path class="line" d="M270 535 V610"/>
+  <path class="line" d="M535 535 V610"/>
+  <path class="line" d="M800 535 V610"/>
+  <path class="line" d="M1065 535 V610"/>
+  <path class="line" d="M1330 535 V610"/>
+  <path class="line" d="M800 735 V820"/>
+  <path class="line" d="M275 820 H1325"/>
+  <path class="line" d="M275 820 V885"/>
+  <path class="line" d="M537 820 V885"/>
+  <path class="line" d="M800 820 V885"/>
+  <path class="line" d="M1063 820 V885"/>
+  <path class="line" d="M1325 820 V885"/>
+
+  <rect class="root" x="570" y="165" width="460" height="90" rx="18"/>
+  <text class="box-title" x="800" y="207">WeBots</text>
+  <text class="box-subtitle" x="800" y="236">Humanoid Robotics Club</text>
+
+  <rect class="exec" x="320" y="355" width="400" height="100" rx="18"/>
+  <text class="box-title" x="520" y="398">President</text>
+  <text class="box-subtitle" x="520" y="430">Direction and partnerships</text>
+
+  <rect class="exec" x="880" y="355" width="400" height="100" rx="18"/>
+  <text class="box-title" x="1080" y="398">Vice President</text>
+  <text class="box-subtitle" x="1080" y="430">Operations and coordination</text>
+
+  <rect class="tech" x="90" y="610" width="360" height="125" rx="18"/>
+  <text class="box-title" x="270" y="657">Mechanical Lead</text>
+  <text class="box-subtitle" x="270" y="690">CAD, fabrication, structure</text>
+  <text class="small" x="270" y="718">Mechanical Team</text>
+
+  <rect class="tech" x="355" y="610" width="360" height="125" rx="18"/>
+  <text class="box-title" x="535" y="657">Electrical Lead</text>
+  <text class="box-subtitle" x="535" y="690">Power, wiring, sensors</text>
+  <text class="small" x="535" y="718">Electrical Team</text>
+
+  <rect class="tech" x="620" y="610" width="360" height="125" rx="18"/>
+  <text class="box-title" x="800" y="657">Software Lead</text>
+  <text class="box-subtitle" x="800" y="690">Controls, sim, tooling</text>
+  <text class="small" x="800" y="718">Software Team</text>
+
+  <rect class="ops" x="885" y="610" width="360" height="125" rx="18"/>
+  <text class="box-title" x="1065" y="657">Competition Lead</text>
+  <text class="box-subtitle" x="1065" y="690">Rules, strategy, planning</text>
+  <text class="small" x="1065" y="718">Comp Team</text>
+
+  <rect class="ops" x="1150" y="610" width="360" height="125" rx="18"/>
+  <text class="box-title" x="1330" y="657">Business Lead</text>
+  <text class="box-subtitle" x="1330" y="690">Sponsors and outreach</text>
+  <text class="small" x="1330" y="718">Business Team</text>
+
+  <rect class="member" x="95" y="885" width="360" height="75" rx="18"/>
+  <text class="box-title" x="275" y="932">Mechanical</text>
+
+  <rect class="member" x="357" y="885" width="360" height="75" rx="18"/>
+  <text class="box-title" x="537" y="932">Electrical</text>
+
+  <rect class="member" x="620" y="885" width="360" height="75" rx="18"/>
+  <text class="box-title" x="800" y="932">Software</text>
+
+  <rect class="member" x="883" y="885" width="360" height="75" rx="18"/>
+  <text class="box-title" x="1063" y="932">Comp</text>
+
+  <rect class="member" x="1145" y="885" width="360" height="75" rx="18"/>
+  <text class="box-title" x="1325" y="932">Business</text>
+</svg>

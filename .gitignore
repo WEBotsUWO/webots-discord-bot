@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bot.stdout.log
+bot.stderr.log
+archives/
+.DS_Store

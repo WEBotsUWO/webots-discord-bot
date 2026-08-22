@@ -1,0 +1,31 @@
+{
+  "name": "webots-discord-bot",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers Discord onboarding bot for a university humanoid robotics club server.",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "clear:commands": "node deploy-commands.js",
+    "post:welcome": "node post-welcome.js",
+    "post:org": "node post-org-structure.js",
+    "migrate:dischook": "node migrate-dischook-posts.js"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "onboarding",
+    "robotics"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.107.0"
+  }
+}
