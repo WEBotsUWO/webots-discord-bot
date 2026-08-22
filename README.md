@@ -60,6 +60,7 @@ CODE_OF_CONDUCT_CHANNEL_ID=
 QUESTIONS_CHANNEL_ID=
 MISSION_STATEMENT_CHANNEL_ID=
 ORG_STRUCTURE_CHANNEL_ID=
+ORG_STRUCTURE_URL=
 SETH_USER_ID=
 ALEKS_USER_ID=
 JAYLEN_USER_ID=
@@ -75,6 +76,7 @@ Where:
 - `NEW_MEMBER_WELCOME_CHANNEL_ID` is the separate channel where the public welcome message should be posted after onboarding completes.
 - `CODE_OF_CONDUCT_CHANNEL_ID`, `QUESTIONS_CHANNEL_ID`, and `MISSION_STATEMENT_CHANNEL_ID` make the welcome message channel references clickable.
 - `ORG_STRUCTURE_CHANNEL_ID` is the channel where `npm run post:org` posts the organization structure.
+- `ORG_STRUCTURE_URL` is the public link to the interactive read-only org chart.
 - `SETH_USER_ID`, `ALEKS_USER_ID`, and `JAYLEN_USER_ID` make the staff names clickable mentions.
 
 ## Invite the Bot
@@ -171,7 +173,9 @@ After setting `ORG_STRUCTURE_CHANNEL_ID` in `.env`, run:
 npm run post:org
 ```
 
-This posts the contents of `content/org-structure.md` and attaches the chart from `assets/org-structure.svg`. Re-running the command replaces the previous bot-authored org-structure post instead of creating a duplicate.
+This posts the contents of `content/org-structure.md`, links the interactive chart, and attaches `assets/org-structure-preview.png`. Re-running the command replaces the previous bot-authored org-structure post instead of creating a duplicate.
+
+The interactive org-structure app source lives in `org-structure/`. The static build intended for hosting lives in `docs/org-structure/`.
 
 ## Test Onboarding
 

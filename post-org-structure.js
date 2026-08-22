@@ -5,11 +5,11 @@ const path = require("node:path");
 const { REST, Routes } = require("discord.js");
 
 const ORG_CHANNEL_NAME = "org-structure";
-const ORG_POST_HEADING = "# WeBots Org Structure";
+const ORG_POST_HEADING = "# WeBots / CHRC Org Structure";
 const MARKDOWN_PATH = path.join(process.cwd(), "content", "org-structure.md");
-const SVG_PATH = path.join(process.cwd(), "assets", "org-structure.svg");
+const PREVIEW_PATH = path.join(process.cwd(), "assets", "org-structure-preview.png");
 
-const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID, ORG_STRUCTURE_CHANNEL_ID } = process.env;
+const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID, ORG_STRUCTURE_CHANNEL_ID, ORG_STRUCTURE_URL } = process.env;
 
 if (!DISCORD_TOKEN || !CLIENT_ID || !GUILD_ID) {
   console.error("Missing DISCORD_TOKEN, CLIENT_ID, or GUILD_ID in your .env file.");
@@ -21,7 +21,7 @@ const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 (async () => {
   try {
     const channelId = ORG_STRUCTURE_CHANNEL_ID || (await findChannelIdByName(ORG_CHANNEL_NAME));
-    const content = await fs.readFile(MARKDOWN_PATH, "utf8");
+    const content = await buildMessageContent();
     const chartFile = await buildChartFile();
 
     await deletePreviousOrgPosts(channelId);
@@ -63,24 +63,20 @@ async function deletePreviousOrgPosts(channelId) {
 }
 
 async function buildChartFile() {
-  const svg = await fs.readFile(SVG_PATH);
+  const data = await fs.readFile(PREVIEW_PATH);
 
-  try {
-    const sharp = require("sharp");
-    const data = await sharp(svg).png().toBuffer();
-    return {
-      data,
-      filename: "webots-org-structure.png",
-      contentType: "image/png",
-    };
-  } catch (error) {
-    console.warn(`Could not render PNG from SVG, attaching SVG instead: ${error.message}`);
-    return {
-      data: svg,
-      filename: "webots-org-structure.svg",
-      contentType: "image/svg+xml",
-    };
-  }
+  return {
+    data,
+    filename: "webots-org-structure-preview.png",
+    contentType: "image/png",
+  };
+}
+
+async function buildMessageContent() {
+  const base = (await fs.readFile(MARKDOWN_PATH, "utf8")).trimEnd();
+  const link = ORG_STRUCTURE_URL || "Set ORG_STRUCTURE_URL in .env after deploying the interactive chart.";
+
+  return `${base}\n${link}`;
 }
 
 async function postMessage(channelId, content, chartFile) {

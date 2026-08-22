@@ -1,42 +1,11 @@
-# WeBots Org Structure
+# WeBots / CHRC Org Structure
 
-WeBots is organized so members can quickly find the right people, team, and project area.
+This chart reflects the proposed 2026-2027 operating structure.
 
-## Executive Team
+- WeBots stays the umbrella student organization.
+- Project JOSH and the WeBots CHRC Competition Team are separate engineering programs with their own Project Managers and technical leads.
+- CHRC is a separate competition organization with its own operations, rules, team relations, finance, and media structure.
+- The Founder role is advisory and outside CHRC day-to-day operations.
+- WeBots competitors receive only published CHRC rules, official clarifications, and the same information as other teams.
 
-President
-: Overall club direction, university coordination, and final decision ownership.
-
-Vice President
-: Internal operations, meeting support, member follow-up, and cross-team coordination.
-
-## Technical Teams
-
-Mechanical Lead
-: Mechanical design, CAD, fabrication planning, assemblies, and robot structure.
-
-Electrical Lead
-: Power, wiring, embedded hardware, sensors, and electrical safety.
-
-Software Lead
-: Controls, simulation, robot software, tooling, GitHub, and technical documentation.
-
-## Competition and Business
-
-Competition Lead
-: Competition strategy, rules, schedules, design planning, and submissions.
-
-Business Lead
-: Sponsors, marketing, outreach, finances, and external relationships.
-
-## Member Teams
-
-Members choose one primary team during onboarding:
-
-- Mechanical
-- Electrical
-- Software
-- Comp
-- Business
-
-You can still collaborate across teams. Your primary role just makes announcements and planning easier to route.
+Open the interactive read-only chart here:

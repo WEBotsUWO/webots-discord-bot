@@ -1,0 +1,25 @@
+{
+  "name": "org-structure-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "d3-hierarchy": "latest",
+    "lucide-react": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/d3-hierarchy": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}

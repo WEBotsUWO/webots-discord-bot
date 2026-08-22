@@ -7,4 +7,5 @@ yarn-error.log*
 bot.stdout.log
 bot.stderr.log
 archives/
+tmp-org-screens/
 .DS_Store
