@@ -51,7 +51,8 @@ const CARD_WIDTH = 286;
 const CARD_HEIGHT = 152;
 const NODE_GAP_X = 330;
 const NODE_GAP_Y = 206;
-const CANVAS_MARGIN = 110;
+const CANVAS_MARGIN_X = 1300;
+const CANVAS_MARGIN_Y = 170;
 const MIN_ZOOM = 0.42;
 const MAX_ZOOM = 3;
 const ZOOM_BUTTON_STEP = 0.1;
@@ -793,8 +794,8 @@ export default function App() {
   const minX = Math.min(...nodes.map((node) => node.x));
   const maxX = Math.max(...nodes.map((node) => node.x));
   const maxY = Math.max(...nodes.map((node) => node.y));
-  const canvasWidth = Math.max(980, maxX - minX + CANVAS_MARGIN * 2 + CARD_WIDTH);
-  const canvasHeight = Math.max(660, maxY + CANVAS_MARGIN * 2 + CARD_HEIGHT);
+  const canvasWidth = Math.max(980, maxX - minX + CANVAS_MARGIN_X * 2 + CARD_WIDTH);
+  const canvasHeight = Math.max(660, maxY + CANVAS_MARGIN_Y * 2 + CARD_HEIGHT);
   const seniorCount = people.filter((person) => person.seniorLeadership).length;
   const hiringCount = people.filter((person) => person.hiring).length;
   const activeTeamCount = new Set(people.map((person) => person.teamId)).size;
@@ -806,7 +807,7 @@ export default function App() {
 
   useEffect(() => {
     if (hasCenteredChart.current || !chartScrollRef.current) return;
-    const rootCenterX = (CANVAS_MARGIN - minX + CARD_WIDTH / 2 + chart.x) * zoom;
+    const rootCenterX = (CANVAS_MARGIN_X - minX + CARD_WIDTH / 2 + chart.x) * zoom;
     chartScrollRef.current.scrollLeft = Math.max(0, rootCenterX - chartScrollRef.current.clientWidth / 2);
     chartScrollRef.current.scrollTop = 0;
     hasCenteredChart.current = true;
@@ -1168,7 +1169,7 @@ export default function App() {
               role="img"
               aria-label="Org chart"
             >
-              <g transform={`translate(${CANVAS_MARGIN - minX + CARD_WIDTH / 2}, ${CANVAS_MARGIN})`}>
+              <g transform={`translate(${CANVAS_MARGIN_X - minX + CARD_WIDTH / 2}, ${CANVAS_MARGIN_Y})`}>
                 {links.map((link) => (
                   <OrgLink key={`${link.source.id}-${link.target.id}`} link={link} />
                 ))}
