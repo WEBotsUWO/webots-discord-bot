@@ -74,7 +74,7 @@ async function buildChartFile() {
 
 async function buildMessageContent() {
   const base = (await fs.readFile(MARKDOWN_PATH, "utf8")).trimEnd();
-  const link = ORG_STRUCTURE_URL || "Set ORG_STRUCTURE_URL in .env after deploying the interactive chart.";
+  const link = ORG_STRUCTURE_URL || "https://webotsuwo.github.io/club-resources/webots/org-structure/";
 
   return `${base}\n${link}`;
 }

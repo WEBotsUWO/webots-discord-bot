@@ -175,7 +175,9 @@ npm run post:org
 
 This posts the contents of `content/org-structure.md`, links the interactive chart, and attaches `assets/org-structure-preview.png`. Re-running the command replaces the previous bot-authored org-structure post instead of creating a duplicate.
 
-The interactive org-structure app source lives in `org-structure/`. The static build intended for hosting lives in `docs/org-structure/`.
+The interactive org charts now live in the separate [club-resources repository](https://github.com/WEBotsUWO/club-resources), with independent [WeBots](https://webotsuwo.github.io/club-resources/webots/org-structure/) and [CHRC](https://webotsuwo.github.io/club-resources/chrc/org-structure/) pages. Authorized editors can update assignments and structure using the chart's **Edit chart** and **Publish** controls; see the [editing guide](https://github.com/WEBotsUWO/club-resources/blob/main/EDITING.md).
+
+`docs/org-structure/index.html` is only a compatibility redirect for previously shared URLs. The chart source and data are no longer part of this bot repository.
 
 ## Test Onboarding
 
