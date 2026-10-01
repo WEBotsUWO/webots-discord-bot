@@ -246,6 +246,8 @@ async function postNewMemberWelcome(env, userId) {
     method: "POST",
     body: {
       content: buildNewMemberWelcomeMessage(env, userId),
+      nonce: userId,
+      enforce_nonce: true,
       allowed_mentions: {
         parse: ["users"],
       },
