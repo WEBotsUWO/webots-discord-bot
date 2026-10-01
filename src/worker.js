@@ -45,6 +45,7 @@ const ONBOARDING_ROLE_NAMES = [
   "CHRC Build Team - Software",
   "Business",
 ];
+const LEGACY_ROLE_NAMES = ["Mechanical", "Electrical", "Software", "Comp"];
 const REQUIRED_ROLE_NAMES = ["Member", ...ONBOARDING_ROLE_NAMES];
 
 const CUSTOM_IDS = {
@@ -184,9 +185,13 @@ async function handleTeamSelect(interaction, env, ctx) {
   const selectedRole = rolesByName.get(selectedRoleName);
   const memberRole = rolesByName.get("Member");
   const currentRoleIds = new Set(interaction.member?.roles ?? []);
-  const rolesToRemove = ONBOARDING_ROLE_NAMES.filter((roleName) => roleName !== selectedRoleName)
-    .map((roleName) => rolesByName.get(roleName))
-    .filter((role) => currentRoleIds.has(role.id));
+  const rolesToRemove = [
+    ...ONBOARDING_ROLE_NAMES.filter((roleName) => roleName !== selectedRoleName)
+      .map((roleName) => rolesByName.get(roleName))
+      .filter((role) => currentRoleIds.has(role.id)),
+    ...LEGACY_ROLE_NAMES.map((roleName) => findRole(allRoles, roleName))
+      .filter((role) => role && currentRoleIds.has(role.id)),
+  ];
   const unmanageableRoles = getUnmanageableRoleNames(rolesById, botMember, [selectedRole, memberRole, ...rolesToRemove]);
 
   if (unmanageableRoles.length > 0) {

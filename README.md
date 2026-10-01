@@ -200,6 +200,8 @@ The interactive org charts now live in the separate [club-resources repository](
 8. Confirm the user receives `Member` plus exactly one onboarding role.
 9. Confirm a public welcome message appears in `NEW_MEMBER_WELCOME_CHANNEL_ID`.
 
+When an existing member completes onboarding, the bot also removes any old generic `Mechanical`, `Electrical`, `Software`, or `Comp` role they still have.
+
 ## Public Welcome Message
 
 When onboarding completes, the Worker posts this message in `NEW_MEMBER_WELCOME_CHANNEL_ID`:
