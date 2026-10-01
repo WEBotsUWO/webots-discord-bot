@@ -6,22 +6,24 @@ This bot does not create the server layout. It only handles onboarding from a we
 
 1. Ask for a real/preferred name.
 2. Try to set the member's server nickname.
-3. Ask them to choose one main team.
-4. Give them `Member` plus exactly one team role.
-5. Remove the other team roles so the team choice stays mutually exclusive.
+3. Ask them to choose one onboarding role.
+4. Give them `Member` plus exactly one onboarding role.
+5. Remove the other onboarding roles so the choice stays mutually exclusive.
 
 ## Roles You Create Manually
 
 Create these roles in Discord:
 
 - `Member`
-- `Mechanical`
-- `Electrical`
-- `Software`
-- `Comp`
+- `Project Josh - Mechanical`
+- `Project Josh - Electrical`
+- `Project Josh - Software`
+- `CHRC Build Team - Mechanical`
+- `CHRC Build Team - Electrical`
+- `CHRC Build Team - Software`
 - `Business`
 
-Move the bot role above all six roles.
+Move the bot role above `Member` and all seven onboarding roles.
 
 ## Server Permissions You Set Manually
 
@@ -182,18 +184,20 @@ The interactive org charts now live in the separate [club-resources repository](
 ## Test Onboarding
 
 1. Confirm the Worker URL is saved as the Discord Interactions Endpoint URL.
-2. Confirm the six roles exist.
+2. Confirm `Member` and all seven onboarding roles exist.
 3. Confirm the bot role is above those roles.
 4. Run `npm run post:welcome`.
 5. Click **Start Onboarding** in the welcome channel.
 6. Enter a real or preferred name.
-7. Choose one team:
-   - Mechanical
-   - Electrical
-   - Software
-   - Comp
+7. Choose one team or area:
+   - Project Josh - Mechanical
+   - Project Josh - Electrical
+   - Project Josh - Software
+   - CHRC Build Team - Mechanical
+   - CHRC Build Team - Electrical
+   - CHRC Build Team - Software
    - Business
-8. Confirm the user receives `Member` plus exactly one team role.
+8. Confirm the user receives `Member` plus exactly one onboarding role.
 9. Confirm a public welcome message appears in `NEW_MEMBER_WELCOME_CHANNEL_ID`.
 
 ## Public Welcome Message
@@ -221,6 +225,6 @@ Note: this Cloudflare Interactions Worker does not receive Discord's true member
 - If Discord refuses the Interactions Endpoint URL, check that `PUBLIC_KEY` is set as a Cloudflare secret.
 - If the button does nothing, make sure the Interactions Endpoint URL points at the deployed Worker.
 - If the bot says roles are missing, create the missing roles manually.
-- If role assignment fails, move the bot role above `Member` and all team roles.
+- If role assignment fails, move the bot role above `Member` and all onboarding roles.
 - If nickname changes fail, check Manage Nicknames and role hierarchy.
 - Use Cloudflare Dashboard > Workers & Pages > Logs to inspect Worker errors.

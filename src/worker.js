@@ -36,8 +36,16 @@ const PERMISSIONS = {
   MANAGE_ROLES: 1n << 28n,
 };
 
-const TEAM_ROLES = ["Mechanical", "Electrical", "Software", "Comp", "Business"];
-const REQUIRED_ROLE_NAMES = ["Member", ...TEAM_ROLES];
+const ONBOARDING_ROLE_NAMES = [
+  "Project Josh - Mechanical",
+  "Project Josh - Electrical",
+  "Project Josh - Software",
+  "CHRC Build Team - Mechanical",
+  "CHRC Build Team - Electrical",
+  "CHRC Build Team - Software",
+  "Business",
+];
+const REQUIRED_ROLE_NAMES = ["Member", ...ONBOARDING_ROLE_NAMES];
 
 const CUSTOM_IDS = {
   startButton: "onboarding:start",
@@ -135,7 +143,7 @@ async function handleNameSubmit(interaction, env) {
   return interactionResponse({
     type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
     data: {
-      content: `${nicknameNote}Thanks. Now choose your main team.`,
+      content: `${nicknameNote}Thanks. Now choose your team or area.`,
       components: [buildTeamSelectRow()],
       flags: MESSAGE_FLAGS.EPHEMERAL,
     },
@@ -145,14 +153,14 @@ async function handleNameSubmit(interaction, env) {
 async function handleTeamSelect(interaction, env, ctx) {
   const guildId = interaction.guild_id;
   const userId = interaction.member?.user?.id ?? interaction.user?.id;
-  const selectedTeam = interaction.data?.values?.[0];
+  const selectedRoleName = interaction.data?.values?.[0];
 
   if (!guildId || !userId) {
     return interactionMessage("Onboarding must be completed inside the Discord server.");
   }
 
-  if (!TEAM_ROLES.includes(selectedTeam)) {
-    return interactionMessage("That team is not available.");
+  if (!ONBOARDING_ROLE_NAMES.includes(selectedRoleName)) {
+    return interactionMessage("That team or area is not available.");
   }
 
   const allRoles = await discordRequest(env, `/guilds/${guildId}/roles`);
@@ -173,10 +181,10 @@ async function handleTeamSelect(interaction, env, ctx) {
     return interactionMessage("I need Manage Roles permission before I can finish onboarding.");
   }
 
-  const selectedRole = rolesByName.get(selectedTeam);
+  const selectedRole = rolesByName.get(selectedRoleName);
   const memberRole = rolesByName.get("Member");
   const currentRoleIds = new Set(interaction.member?.roles ?? []);
-  const rolesToRemove = TEAM_ROLES.filter((roleName) => roleName !== selectedTeam)
+  const rolesToRemove = ONBOARDING_ROLE_NAMES.filter((roleName) => roleName !== selectedRoleName)
     .map((roleName) => rolesByName.get(roleName))
     .filter((role) => currentRoleIds.has(role.id));
   const unmanageableRoles = getUnmanageableRoleNames(rolesById, botMember, [selectedRole, memberRole, ...rolesToRemove]);
@@ -217,12 +225,12 @@ async function handleTeamSelect(interaction, env, ctx) {
     );
   }
 
-  console.log(`${userId} completed onboarding as ${selectedTeam}.`);
+  console.log(`${userId} completed onboarding with ${selectedRoleName}.`);
 
   return interactionResponse({
     type: RESPONSE_TYPES.UPDATE_MESSAGE,
     data: {
-      content: `Onboarding complete. You are now a Member on the ${selectedTeam} team, and the rest of the server is unlocked.`,
+      content: `Onboarding complete. You are now a Member with the ${selectedRoleName} role, and the rest of the server is unlocked.`,
       components: [],
     },
   });
@@ -322,10 +330,10 @@ function buildTeamSelectRow() {
       {
         type: COMPONENT_TYPES.STRING_SELECT,
         custom_id: CUSTOM_IDS.teamSelect,
-        placeholder: "Choose your main team",
+        placeholder: "Choose your team or area",
         min_values: 1,
         max_values: 1,
-        options: TEAM_ROLES.map((roleName) => ({
+        options: ONBOARDING_ROLE_NAMES.map((roleName) => ({
           label: roleName,
           value: roleName,
         })),
