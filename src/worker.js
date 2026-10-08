@@ -256,16 +256,17 @@ async function postNewMemberWelcome(env, userId) {
 }
 
 function buildNewMemberWelcomeMessage(env, userId) {
+  const meetingDateTime = channelMention(env.MEETING_DATE_TIME_CHANNEL_ID, "#meeting-date-time");
   const codeOfConduct = channelMention(env.CODE_OF_CONDUCT_CHANNEL_ID, "code-of-conduct");
   const questions = channelMention(env.QUESTIONS_CHANNEL_ID, "questions-answers");
   const missionStatement = channelMention(env.MISSION_STATEMENT_CHANNEL_ID, "mission-statement");
-  const staffMentions = [env.SETH_USER_ID, env.ALEKS_USER_ID, env.JAYLEN_USER_ID]
+  const staffMentions = [env.SETH_USER_ID, env.ALEKS_USER_ID]
     .filter(Boolean)
     .map((staffUserId) => `<@${staffUserId}>`);
-  const staffText = staffMentions.length > 0 ? joinStaffMentions(staffMentions) : "@seth, @aleks, or @jaylen";
+  const staffText = staffMentions.length > 0 ? joinStaffMentions(staffMentions) : "@Seth or @Aleks";
 
   return [
-    `Welcome to WeBots, <@${userId}>! We meet every week on Thursday at 7:00pm in Aceb-3435. You can join anytime!`,
+    `Welcome to WeBots, <@${userId}>! We meet every week at ${meetingDateTime}. You can join anytime!`,
     "",
     "In the meantime, to get started:",
     `- read the ${codeOfConduct}`,

@@ -58,6 +58,7 @@ CLIENT_ID=
 GUILD_ID=
 WELCOME_CHANNEL_ID=
 NEW_MEMBER_WELCOME_CHANNEL_ID=
+MEETING_DATE_TIME_CHANNEL_ID=
 CODE_OF_CONDUCT_CHANNEL_ID=
 QUESTIONS_CHANNEL_ID=
 MISSION_STATEMENT_CHANNEL_ID=
@@ -65,7 +66,6 @@ ORG_STRUCTURE_CHANNEL_ID=
 ORG_STRUCTURE_URL=
 SETH_USER_ID=
 ALEKS_USER_ID=
-JAYLEN_USER_ID=
 ```
 
 Where:
@@ -76,10 +76,10 @@ Where:
 - `GUILD_ID` is your Discord server ID. It is only used to clear old guild slash commands.
 - `WELCOME_CHANNEL_ID` is the channel where the onboarding button should be posted.
 - `NEW_MEMBER_WELCOME_CHANNEL_ID` is the separate channel where the public welcome message should be posted after onboarding completes.
-- `CODE_OF_CONDUCT_CHANNEL_ID`, `QUESTIONS_CHANNEL_ID`, and `MISSION_STATEMENT_CHANNEL_ID` make the welcome message channel references clickable.
+- `MEETING_DATE_TIME_CHANNEL_ID`, `CODE_OF_CONDUCT_CHANNEL_ID`, `QUESTIONS_CHANNEL_ID`, and `MISSION_STATEMENT_CHANNEL_ID` make the welcome message channel references clickable.
 - `ORG_STRUCTURE_CHANNEL_ID` is the channel where `npm run post:org` posts the organization structure.
 - `ORG_STRUCTURE_URL` is the public link to the interactive read-only org chart.
-- `SETH_USER_ID`, `ALEKS_USER_ID`, and `JAYLEN_USER_ID` make the staff names clickable mentions.
+- `SETH_USER_ID` and `ALEKS_USER_ID` make the staff names clickable mentions.
 
 ## Invite the Bot
 
@@ -114,12 +114,12 @@ npx wrangler secret put DISCORD_TOKEN
 npx wrangler secret put PUBLIC_KEY
 npx wrangler secret put CLIENT_ID
 npx wrangler secret put NEW_MEMBER_WELCOME_CHANNEL_ID
+npx wrangler secret put MEETING_DATE_TIME_CHANNEL_ID
 npx wrangler secret put CODE_OF_CONDUCT_CHANNEL_ID
 npx wrangler secret put QUESTIONS_CHANNEL_ID
 npx wrangler secret put MISSION_STATEMENT_CHANNEL_ID
 npx wrangler secret put SETH_USER_ID
 npx wrangler secret put ALEKS_USER_ID
-npx wrangler secret put JAYLEN_USER_ID
 ```
 
 Paste the matching value when Wrangler prompts you.
@@ -207,14 +207,14 @@ When an existing member completes onboarding, the bot also removes any old gener
 When onboarding completes, the Worker posts this message in `NEW_MEMBER_WELCOME_CHANNEL_ID`:
 
 ```text
-Welcome to WeBots, @user! We meet every week on Thursday at 7:00pm in Aceb-3435. You can join anytime!
+Welcome to WeBots, @user! We meet every week at #meeting-date-time. You can join anytime!
 
 In the meantime, to get started:
 - read the code-of-conduct
 - ask questions in questions-answers
 - learn about our mission under mission-statement
 
-If you need anything else, reach out to @seth, @aleks, or @jaylen.
+If you need anything else, reach out to @Seth or @Aleks.
 Excited to have you on board!
 ```
 
