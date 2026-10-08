@@ -15,9 +15,9 @@ This bot does not create the server layout. It only handles onboarding from a we
 Create these roles in Discord:
 
 - `Member`
-- `Project Josh - Mechanical`
-- `Project Josh - Electrical`
-- `Project Josh - Software`
+- `Project JOSH - Mechanical`
+- `Project JOSH - Electrical`
+- `Project JOSH - Software`
 - `CHRC Build Team - Mechanical`
 - `CHRC Build Team - Electrical`
 - `CHRC Build Team - Software`
@@ -190,9 +190,9 @@ The interactive org charts now live in the separate [club-resources repository](
 5. Click **Start Onboarding** in the welcome channel.
 6. Enter a real or preferred name.
 7. Choose one team or area:
-   - Project Josh - Mechanical
-   - Project Josh - Electrical
-   - Project Josh - Software
+   - Project JOSH - Mechanical
+   - Project JOSH - Electrical
+   - Project JOSH - Software
    - CHRC Build Team - Mechanical
    - CHRC Build Team - Electrical
    - CHRC Build Team - Software

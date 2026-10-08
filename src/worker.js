@@ -37,9 +37,9 @@ const PERMISSIONS = {
 };
 
 const ONBOARDING_ROLE_NAMES = [
-  "Project Josh - Mechanical",
-  "Project Josh - Electrical",
-  "Project Josh - Software",
+  "Project JOSH - Mechanical",
+  "Project JOSH - Electrical",
+  "Project JOSH - Software",
   "CHRC Build Team - Mechanical",
   "CHRC Build Team - Electrical",
   "CHRC Build Team - Software",
